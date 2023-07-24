@@ -1,0 +1,19 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Search
+{% endblock %}
+
+{% block body %}
+
+    <h1>Did not find <em>"{{ q }}"</em>. Found results:</h1>
+
+    <ul>
+        {% for entry in entries %}
+        <li><a href="/wiki/{{ entry }}">{{ entry }}</a></li>
+        {% empty %}
+        <h4>Could not find any results.</h4>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

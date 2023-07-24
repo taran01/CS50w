@@ -1,0 +1,19 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    {{ title }} - Encyclopedia
+{% endblock %}
+
+{% block body %}
+
+    {% if title != "Not Found" %}
+    <form class="edit-form" action="{% url 'editpage' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="title" value="{{ title }}">
+        <input class="btn btn-warning" type="submit" value="Edit Page">
+    </form>
+    {% endif %}
+
+    {{ html | safe }}
+
+{% endblock %}
