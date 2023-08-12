@@ -1,0 +1,171 @@
+{% extends "auctions/layout.html" %}
+
+{% load crispy_forms_tags %}
+{% load usd %}
+{% load tz %}
+
+{% block body %}
+    <!-- page title -->
+    <div>
+        <h2>Listing: {{ listing.title }}</h2>
+    </div>
+
+    <!-- img and sidepanel -->
+    <div class="container-fluid d-flex row mb-5">
+        <div class="col-5 listing-details-img">
+            <img class="img-fluid" src="{{ listing.img_url }}" alt="Image not found">
+        </div>
+        <div class="mx-3 p-5 rounded-lg bg-light d-flex flex-column align-items-start">
+            <h3>{{ listing.current_bid.bid_amount | default:"No current bid." | usd }}</h3>
+
+            <p>{{ bids.count }} bid(s) so far.
+                {% if user == listing.current_bid.user and listing.status == False %}
+                    <span class="font-weight-bold">Congrats! You have won this bid.</span>
+                {% elif listing.current_bid.user == user %}
+                    <span>Your bid is the current bid.</span>
+                {% endif %}
+            </p>
+
+            {% if user.is_authenticated %}
+                {% if listing.status == True %}
+                    <form action="{% url 'bid' listing.id %}" method="post">
+                        {% csrf_token %}
+                        {{ bid_form | crispy }}
+                        <input class="btn btn-primary" type="submit" value="Place Bid">
+                    </form>
+                    {% if message %}
+                        <div class="alert alert-warning">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+                {% endif %}
+                {% if watchlist %}
+                    <form action="{% url 'watchlist' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-danger">Remove from Watchlist</button>
+                    </form>
+                {% else %}
+                    <form action="{% url 'watchlist' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-outline-success">Add to Watchlist</button>
+                    </form>
+                {% endif %}
+                {% if user == listing.owner and listing.status == True %}
+                    <form action="{% url 'close_listing' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-danger">Close Auction</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <p>Please <a href="{% url 'login' %}?next={% url 'listing_details' listing.id %}">Log-in</a> to bid!</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- description, price and details -->
+    <div class="container-fluid row">
+        <div class="col-lg-8 mb-3">{{ listing.description }}</div>
+    </div>
+    <div class="container-fluid">
+        <p><strong>Starting Price: </strong>{{ listing.starting_price | usd }}</p>
+    </div>
+    <hr>
+    <div class="container-fluid">
+        <h3>Details:</h3>
+        <ul>
+            <li><strong>Listed by: </strong>{{ listing.owner }}</li>
+            <li><strong>Category: </strong>{{ listing.category }}</li>
+            <li><strong>Created: </strong><span id="created-at"></span></li>
+            <li>
+                <strong>Auction Status: </strong>
+                {% if listing.status %}
+                    Ongoing
+                {% else %}
+                    Closed
+                {% endif %}
+            </li>
+        </ul>
+    </div>
+    <hr>
+
+    <!-- comments -->
+    <div class="container-fluid">
+        <h3>Comments:</h3>
+        {% if user.is_authenticated %}
+            {% if listing.status == True %}
+                <form action="{% url 'comments' listing.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="col-lg-6">
+                        {{ comment_form | crispy }}
+                    </div>
+                    <input class="btn btn-primary" type="submit" value="Post Comment">
+                </form>
+                {% if comment_message %}
+                    <div class="alert alert-warning">{{ comment_message }}</div>
+                {% endif %}
+            {% endif %}
+        {% else %}
+            <p>Please <a href="{% url 'login' %}?next={% url 'listing_details' listing.id %}">Log-in</a> to comment!</p>
+        {% endif %}
+    </div>
+    <div class="contanier-fluid py-4">
+        <div class="row d-flex">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Recent Comments</h4>
+                    </div>
+                    {% for comment in comments %}
+                    <hr class="m-0">
+                    <div class="card-body p-4">
+                        <h6 class="card-title mb-1">{{ comment.user }}</h6>
+                        <div class="text-muted mb-3">
+                            <span class="my-span">{{ comment.timestamp | date:"c" }}</span>
+                        </div>
+                        <p class="card-text">{{ comment.text }}</p>
+                    </div>
+                    {% empty %}
+                    <div class="card-body p-4">
+                        <h6 class="card-title mb-1">No comments.</h6>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: "2-digit", minute: "2-digit", hour12: "True" };
+            // Get the UTC datetime string from your Django template
+            const utcDatetimeString = "{{ listing.created_at | date:'c' }}";
+
+            // Convert the UTC datetime to the user's local timezone
+            const localDatetime = new Date(utcDatetimeString);
+
+            // Display the local datetime in the desired format
+            const formattedDatetime = localDatetime.toLocaleDateString("en-US", options);
+            document.getElementById("created-at").innerText = formattedDatetime;
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const spans = document.querySelectorAll(".my-span");
+
+            function toLocalTime(id, datetime) {
+                var options = { year: 'numeric', month: 'long', day: 'numeric', hour: "2-digit", minute: "2-digit", hour12: "True" };
+                const localDatetime = new Date(datetime);
+                const formattedDatetime = localDatetime.toLocaleDateString("en-US", options);
+                id.innerText = formattedDatetime;
+            };
+
+            spans.forEach(function (span) {
+                const datetime = span.textContent;
+                toLocalTime(span, datetime);
+            })
+
+        });
+    </script>
+
+{% endblock %}

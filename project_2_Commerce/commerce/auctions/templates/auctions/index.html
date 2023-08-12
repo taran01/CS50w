@@ -1,0 +1,66 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    {{ title }} |
+{% endblock %}
+
+
+{% load usd %}
+
+{% block body %}
+    <!-- page title -->
+    <h2>{{ title }}</h2>
+
+
+    {% for listing in listings %}
+        <div class="container-fluid border d-flex row my-4 mx-1">
+            <div class="col-lg-4 my-3 d-flex justify-content-center align-content-center flex-wrap home-img-container">
+                <a href="{% url 'listing_details' listing.id %}">
+                    <img class="img-fluid" src="{{ listing.img_url }}" alt="Image Not Found">
+                </a>
+            </div>
+            <div class="col-lg-7 d-flex flex-column my-5">
+                <div>
+                    <h3><a href="{% url 'listing_details' listing.id %}">{{ listing.title }}</a></h3>
+                </div>
+                <div class="container-fluid row">
+                    <div><strong>Description: </strong></div>
+                    <div class="col-md-8 listing-description">{{ listing.description }}</div>
+                </div>
+                <div>
+                    <div><strong>Current Bid: </strong>{{ listing.current_bid.bid_amount | default:"No current bid" | usd }}</div>
+                </div>
+                <div>
+                    <div><strong>Starting Price: </strong>{{ listing.starting_price | usd }}</div>
+                </div>
+                <div>
+                    <!-- <p><strong>Created: </strong><span onload="toLocalTime(this, datetime='{{ listing.created_at | date:'c' }}')">click me</span></p> -->
+                    <div><strong>Created: </strong><span class="my-span">{{ listing.created_at | date:"c" }}</span></div>
+
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <h5>No listing in {{ title }}</h5>
+    {% endfor %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const spans = document.querySelectorAll(".my-span");
+
+            function toLocalTime(id, datetime) {
+                var options = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: "2-digit", minute: "2-digit", hour12: "True" };
+                const localDatetime = new Date(datetime);
+                const formattedDatetime = localDatetime.toLocaleDateString("en-US", options);
+                id.innerText = formattedDatetime;
+            };
+
+            spans.forEach(function (span) {
+                const datetime = span.textContent;
+                toLocalTime(span, datetime);
+            })
+
+        });
+    </script>
+
+{% endblock %}

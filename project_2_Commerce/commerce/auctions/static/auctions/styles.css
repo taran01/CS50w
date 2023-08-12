@@ -1,0 +1,47 @@
+body {
+    margin: 0px;
+}
+
+.d-flex {
+    gap: 10px;
+}
+
+/* title */
+.jumbotron {
+    padding: 20px 30px;
+    margin-bottom: 10px;
+}
+
+/* navbar */
+.nav-item a:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* index page sidepanel */
+.listing-description {
+    min-width: 320px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* index page img */
+.home-img-container {
+    min-width: 300px;
+}
+
+.home-img-container img {
+    max-height: 300px;
+}
+
+
+/* listing details page */
+
+.listing-details-img {
+    min-width: 300px;
+}
+
+.listing-details-img img {
+    max-height: 500px;
+}
