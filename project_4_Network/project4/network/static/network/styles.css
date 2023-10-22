@@ -1,0 +1,22 @@
+.sticky-post {
+    position: sticky;
+    top: 60px;
+}
+
+@keyframes index {
+    from {
+        opacity: 0;
+        width: 50%;
+    }
+
+    to {
+        opacity: 1;
+        width: 100%;
+    }
+}
+
+.index {
+    animation-name: index;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+}

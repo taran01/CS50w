@@ -1,0 +1,111 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    {% if error %}
+        <div class="my-3 mx-4">
+            <h3>{{ error }}</h3>
+        </div>
+        <hr>
+        <h4 class="font-weight-bold mt-lg-5 text-center">User does not exist</h4>
+        <p class="text-muted text-center">Check for username or try another one.</p>
+    {% else %}
+
+        <div class="my-3 mx-4">
+            <h3>{{ profile_user }}</h3>
+
+            <div class="text-muted">📅 Joined {{ profile_user.date_joined | date:"F, Y" }}</div>
+            <div><span id="following">{{ following }} Following</span> . <span id="followers">{{ followers }} Followers</span></div>
+            {% if profile_user != user and user.is_authenticated %}
+                {% if follows %}
+                    <button id="unfollow" data-userid="{{ profile_user.id }}" class="btn btn-outline-danger mt-2">Unfollow</button>
+                {% else %}
+                    <button id="follow" data-userid="{{ profile_user.id }}" class="btn btn-outline-primary mt-2">Follow</button>
+                {% endif %}
+            {% endif %}
+        </div>
+        <hr>
+        <div class="container-fluid">
+            <div class="row">
+
+                <div class="col order-2 order-lg-1 index">
+                    {% for post in items_page %}
+                        <div class="card border mb-3">
+                            <div class="card-body">
+                                <div id="post-id" hidden>{{ post.id }}</div>
+                                <h5 class="card-title"><a href="{% url 'profile_page' post.user.username %}">{{ post.user }}</a></h5>
+                                <p class="card-text content mb-1">{{ post.content }}</p>
+                                <p class="card-text text-muted">{{ post.timestamp }}</p>
+                                <p class="mb-0">
+                                    {% if post in likes %}
+                                        <a id="like-btn" data-postid="{{ post.id }}" data-value="like">❤️</a>
+                                    {% else %}
+                                        <a id="like-btn" data-postid="{{ post.id }}" data-value="unlike">🤍</a>
+                                    {% endif %}
+                                    <span id="post-likes">
+                                        {{ post.likes }}
+                                    </span>
+                                    <span class="alert alert-warning ml-2" style="display: none;">Need to <a href="{% url 'login' %}" class="alert-link">login!</a></span>
+                                    {% if post.user == user %}&nbsp; &nbsp;| &nbsp; <a id="edit-post" class="text-primary font-weight-bold">Edit</a>{% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    {% empty %}
+                            <h4 class="font-weight-bold mt-lg-5 text-center">No Posts Yet :(</h4>
+                    {% endfor %}
+                </div>
+
+                <!-- New post form -->
+
+                {% if user.is_authenticated %}
+                <div class="col-lg-3 order-1 order-lg-2">
+                    <div class="sticky-post m-2 mb-4">
+                        <h5>New Post</h5>
+
+                        <form action="{% url 'new_post' %}" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <textarea class="form-control" name="content" rows="5" required placeholder="What's happening?"></textarea>
+                            </div>
+                            {% if form_message %}
+                                <div class="alert alert-warning">{{ form_message }}</div>
+                            {% endif %}
+                            <input class="btn btn-primary" type="submit" value="Post">
+                        </form>
+
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Pagination -->
+
+            {% if items_page %}
+                {% if items_page.has_other_pages %}
+                    <div class="btn-group mb-3" role="group" aria-label="Item pagination">
+                        {% if items_page.has_previous %}
+                            <a href="?page={{ items_page.previous_page_number }}" class="btn btn-outline-primary">&laquo;</a>
+                        {% endif %}
+
+                        {% for page_number in items_page.paginator.page_range %}
+                            {% if items_page.number == page_number %}
+                                <button class="btn btn-outline-primary active">
+                                    <span>{{ page_number }} <span class="sr-only">(current)</span></span>
+                                </button>
+                            {% else %}
+                                <a href="?page={{ page_number }}" class="btn btn-outline-primary">
+                                    {{ page_number }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if items_page.has_next %}
+                            <a href="?page={{ items_page.next_page_number }}" class="btn btn-outline-primary">&raquo;</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
+
+        </div>
+    {% endif %}
+
+{% endblock %}
